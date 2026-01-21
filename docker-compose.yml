@@ -11,6 +11,7 @@ services:
       - postal-config:/config
       - ./docker/start.sh:/start.sh:ro
     environment:
+      BIND_ADDRESS: "0.0.0.0"
       POSTAL_WEB_HOSTNAME: ${POSTAL_WEB_HOSTNAME}
       POSTAL_WEB_PROTOCOL: https
       POSTAL_SMTP_HOSTNAME: ${POSTAL_SMTP_HOSTNAME}

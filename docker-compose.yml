@@ -15,18 +15,20 @@ services:
       POSTAL_WEB_PROTOCOL: https
       POSTAL_SMTP_HOSTNAME: ${POSTAL_SMTP_HOSTNAME}
       MAIN_DB_HOST: mariadb
-      MAIN_DB_PORT: 3306
+      MAIN_DB_PORT: "3306"
       MAIN_DB_USERNAME: postal
       MAIN_DB_PASSWORD: ${DB_PASSWORD}
       MAIN_DB_DATABASE: postal
       MESSAGE_DB_HOST: mariadb
-      MESSAGE_DB_PORT: 3306
+      MESSAGE_DB_PORT: "3306"
       MESSAGE_DB_USERNAME: postal
       MESSAGE_DB_PASSWORD: ${DB_PASSWORD}
       RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
       POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
     entrypoint: ["/bin/bash", "/start.sh"]
     restart: unless-stopped
+    networks:
+      - postal-network
 
   mariadb:
     image: mariadb:10.11
@@ -44,7 +46,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - postal-network
 
 volumes:
   postal-config:
   mariadb-data:
+
+networks:
+  postal-network:
+    driver: bridge

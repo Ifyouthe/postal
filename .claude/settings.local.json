@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: update docker-compose for production deployment\n\nConfigure docker-compose.yml for production use with Dockploy:\n- Build image from Dockerfile instead of using external image\n- Add environment variables for database and Postal configuration\n- Add persistent volumes for config and database data\n- Set proper MariaDB security with password authentication\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -1,10 +1,66 @@
 services:
-  postal:
+  postal-init:
     build: .
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - postal-config:/config
+    environment:
+      POSTAL_WEB_HOSTNAME: ${POSTAL_WEB_HOSTNAME}
+      POSTAL_WEB_PROTOCOL: https
+      POSTAL_SMTP_HOSTNAME: ${POSTAL_SMTP_HOSTNAME}
+      MAIN_DB_HOST: mariadb
+      MAIN_DB_PORT: 3306
+      MAIN_DB_USERNAME: postal
+      MAIN_DB_PASSWORD: ${DB_PASSWORD}
+      MAIN_DB_DATABASE: postal
+      MESSAGE_DB_HOST: mariadb
+      MESSAGE_DB_PORT: 3306
+      MESSAGE_DB_USERNAME: postal
+      MESSAGE_DB_PASSWORD: ${DB_PASSWORD}
+      RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
+      POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
+    command: ["postal", "initialize"]
+    restart: "no"
+
+  postal-web:
+    build: .
+    depends_on:
+      postal-init:
+        condition: service_completed_successfully
+      mariadb:
+        condition: service_healthy
     ports:
       - "5000:5000"
+    volumes:
+      - postal-config:/config
+    environment:
+      POSTAL_WEB_HOSTNAME: ${POSTAL_WEB_HOSTNAME}
+      POSTAL_WEB_PROTOCOL: https
+      POSTAL_SMTP_HOSTNAME: ${POSTAL_SMTP_HOSTNAME}
+      MAIN_DB_HOST: mariadb
+      MAIN_DB_PORT: 3306
+      MAIN_DB_USERNAME: postal
+      MAIN_DB_PASSWORD: ${DB_PASSWORD}
+      MAIN_DB_DATABASE: postal
+      MESSAGE_DB_HOST: mariadb
+      MESSAGE_DB_PORT: 3306
+      MESSAGE_DB_USERNAME: postal
+      MESSAGE_DB_PASSWORD: ${DB_PASSWORD}
+      RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
+      POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
+    command: ["postal", "web-server"]
+    restart: unless-stopped
+
+  postal-smtp:
+    build: .
+    depends_on:
+      postal-init:
+        condition: service_completed_successfully
+      mariadb:
+        condition: service_healthy
+    ports:
       - "25:25"
     volumes:
       - postal-config:/config
@@ -23,6 +79,34 @@ services:
       MESSAGE_DB_PASSWORD: ${DB_PASSWORD}
       RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
       POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
+    command: ["postal", "smtp-server"]
+    restart: unless-stopped
+
+  postal-worker:
+    build: .
+    depends_on:
+      postal-init:
+        condition: service_completed_successfully
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - postal-config:/config
+    environment:
+      POSTAL_WEB_HOSTNAME: ${POSTAL_WEB_HOSTNAME}
+      POSTAL_WEB_PROTOCOL: https
+      POSTAL_SMTP_HOSTNAME: ${POSTAL_SMTP_HOSTNAME}
+      MAIN_DB_HOST: mariadb
+      MAIN_DB_PORT: 3306
+      MAIN_DB_USERNAME: postal
+      MAIN_DB_PASSWORD: ${DB_PASSWORD}
+      MAIN_DB_DATABASE: postal
+      MESSAGE_DB_HOST: mariadb
+      MESSAGE_DB_PORT: 3306
+      MESSAGE_DB_USERNAME: postal
+      MESSAGE_DB_PASSWORD: ${DB_PASSWORD}
+      RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
+      POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
+    command: ["postal", "worker"]
     restart: unless-stopped
 
   mariadb:
@@ -35,6 +119,12 @@ services:
       MARIADB_DATABASE: postal
       MARIADB_USER: postal
       MARIADB_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postal-config:

@@ -26,6 +26,12 @@ services:
       MESSAGE_DB_PASSWORD: ${DB_ROOT_PASSWORD}
       RAILS_SECRET_KEY: ${RAILS_SECRET_KEY}
       POSTAL_SIGNING_KEY: ${POSTAL_SIGNING_KEY}
+      DNS_MX_RECORDS: '["smtp.evolvedigital.cloud"]'
+      DNS_SPF_INCLUDE: spf.evolvedigital.cloud
+      DNS_RETURN_PATH_DOMAIN: rp.evolvedigital.cloud
+      DNS_ROUTE_DOMAIN: routes.evolvedigital.cloud
+      DNS_TRACK_DOMAIN: track.evolvedigital.cloud
+      DNS_HELO_HOSTNAME: smtp.evolvedigital.cloud
     entrypoint: ["/bin/bash", "/start.sh"]
     restart: unless-stopped
     networks:
